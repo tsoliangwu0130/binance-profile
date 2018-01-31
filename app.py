@@ -9,9 +9,14 @@ app.config.from_object(Config)
 @app.route('/')
 def index():
     client = Client(app.config['API_KEY'], app.config['API_SECRET'])
-    balance = client.get_asset_balance(asset='BTC')
-    print(balance)
-    return 'Hello'
+    info = client.get_account()
+
+    for balance in info['balances']:
+        total_balance = float(balance['free']) + float(balance['locked'])
+        if total_balance > 0:
+            print('{}: {}'.format(balance['asset'], total_balance))
+
+    return ''
 
 
 if __name__ == '__main__':
