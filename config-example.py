@@ -1,3 +1,3 @@
 class Config(object):
-    API_KEY = ''
-    API_SECRET = ''
+    API_KEY = 'api_key'
+    API_SECRET = 'api_secret'
