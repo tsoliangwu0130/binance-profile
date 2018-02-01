@@ -8,13 +8,46 @@ app.config.from_object(Config)
 client = Client(app.config['API_KEY'], app.config['API_SECRET'])
 
 
-def get_info():
+def get_symbols(symbol):
+    usdt_symbols = ['BTC', 'ETH', 'NEO', 'BNB', 'LTC', 'BCC']
+    hold_symbols = ['BTC', 'ETH']
+    symbols = []
+
+    for hold in hold_symbols:
+        if symbol == hold:
+            continue
+        else:
+            symbols.append(symbol + hold)
+
+    if symbol in usdt_symbols:
+        symbols.append(symbol + 'USDT')
+
+    return symbols
+
+
+def get_blances():
     info = client.get_account()
+    balances = []
 
     for balance in info['balances']:
         total_balance = float(balance['free']) + float(balance['locked'])
         if total_balance > 0:
-            print('{}: {}'.format(balance['asset'], total_balance))
+            tickers = []
+            for symbol in get_symbols(balance['asset']):
+                try:
+                    ticker = client.get_symbol_ticker(symbol=symbol)
+                    tickers.append(ticker)
+                except:
+                    continue
+
+            balances.append({
+                'assest': balance['asset'],
+                'tickers': tickers,
+                'free': balance['free'],
+                'locked': balance['locked']
+            })
+
+    return balances
 
 
 def get_all_orders():
@@ -24,8 +57,9 @@ def get_all_orders():
 
 @app.route('/')
 def index():
-    get_info()
-    get_all_orders()
+    balances = get_blances()
+    print(balances)
+    # get_all_orders()
 
     return ''
 
