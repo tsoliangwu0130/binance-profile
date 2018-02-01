@@ -58,7 +58,7 @@ def get_all_orders():
 @app.route('/')
 def index():
     balances = get_blances()
-    print(balances)
+    print(json.dumps(balances, indent=4, sort_keys=True))
     # get_all_orders()
 
     return ''
