@@ -1,74 +1,43 @@
+import datetime
 import json
-from binance.client import Client
+from binance.client import Client, BinanceAPIException
 from config import Config
 from flask import Flask
 
 app = Flask(__name__)
 app.config.from_object(Config)
 client = Client(app.config['API_KEY'], app.config['API_SECRET'])
+symbols = client.get_exchange_info()['symbols']
 
 
-def get_symbols(symbol):
-    usdt_symbols = ['BTC', 'ETH', 'NEO', 'BNB', 'LTC', 'BCC']
-    hold_symbols = ['BTC', 'ETH']
-    symbols = []
+def get_account():
+    account = client.get_account()
+    balances = [b for b in account['balances'] if (float(b['free']) + float(b['locked']) > 0)]
+    account['balances'] = balances
 
-    for hold in hold_symbols:
-        if symbol == hold:
-            continue
-        else:
-            symbols.append(symbol + hold)
+    orders = []
+    for symbol in symbols:
+        if any(symbol['symbol'].startswith(balance['asset']) for balance in balances):
+            try:
+                order = client.get_all_orders(symbol=symbol['symbol'])
+                orders.append(order) if order else None
+            except BinanceAPIException:
+                continue
 
-    if symbol in usdt_symbols:
-        symbols.append(symbol + 'USDT')
+    for order in orders:
+        for o in order:
+            date = datetime.datetime.fromtimestamp(int(o['time']) / 1000).strftime('%Y-%m-%d %H:%M:%S')
+            o['date'] = date
 
-    return symbols
-
-
-def get_blances():
-    info = client.get_account()
-    balances = []
-
-    for balance in info['balances']:
-        total_balance = float(balance['free']) + float(balance['locked'])
-        if total_balance > 0:
-            tickers = []
-            for symbol in get_symbols(balance['asset']):
-                try:
-                    ticker = client.get_symbol_ticker(symbol=symbol)
-                    tickers.append(ticker)
-                except:
-                    continue
-            balances.append({
-                'assest': balance['asset'],
-                'tickers': tickers,
-                'free': balance['free'],
-                'locked': balance['locked']
-            })
-
-    return balances
+    account['orders'] = orders
+    print(json.dumps(orders, indent=4, sort_keys=''))
+    return account
 
 
 @app.route('/')
 def index():
-    balances = get_blances()
-    print(json.dumps(balances, indent=4, sort_keys=True))
-
-    for balance in balances:
-        for ticker in balance['tickers']:
-            try:
-                orders = client.get_all_orders(symbol=ticker['symbol'])
-                for order in orders:
-                    if order and order['status'] == 'NEW':
-                        target = order['symbol'][:3]
-                        base = order['symbol'][3:]
-                        base_to_usdt = client.get_symbol_ticker(symbol=base+'USDT')['price']
-                        print('{} / {}: '.format(target, base))
-                        print(' - Quantity: {}'.format(order['origQty']))
-                        usdt_price = float(order['price']) * float(base_to_usdt)
-                        print(' - Price to {}: {} (= ${:.2f})'.format(base, order['price'], usdt_price))
-            except:
-                continue
+    account = get_account()
+    # print(json.dumps(account, indent=4))
 
     return ''
 
