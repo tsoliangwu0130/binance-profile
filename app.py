@@ -39,7 +39,6 @@ def get_blances():
                     tickers.append(ticker)
                 except:
                     continue
-
             balances.append({
                 'assest': balance['asset'],
                 'tickers': tickers,
@@ -50,16 +49,26 @@ def get_blances():
     return balances
 
 
-def get_all_orders():
-    orders = client.get_all_orders(symbol='ICXBTC')
-    print(json.dumps(orders, indent=4, sort_keys=True))
-
-
 @app.route('/')
 def index():
     balances = get_blances()
     print(json.dumps(balances, indent=4, sort_keys=True))
-    # get_all_orders()
+
+    for balance in balances:
+        for ticker in balance['tickers']:
+            try:
+                orders = client.get_all_orders(symbol=ticker['symbol'])
+                for order in orders:
+                    if order and order['status'] == 'NEW':
+                        target = order['symbol'][:3]
+                        base = order['symbol'][3:]
+                        base_to_usdt = client.get_symbol_ticker(symbol=base+'USDT')['price']
+                        print('{} / {}: '.format(target, base))
+                        print(' - Quantity: {}'.format(order['origQty']))
+                        print(' - Price to {}: {}'.format(base, order['price']))
+                        print(' - Price to USDT: {}'.format(float(order['price']) * float(base_to_usdt)))
+            except:
+                continue
 
     return ''
 
