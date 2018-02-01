@@ -65,8 +65,8 @@ def index():
                         base_to_usdt = client.get_symbol_ticker(symbol=base+'USDT')['price']
                         print('{} / {}: '.format(target, base))
                         print(' - Quantity: {}'.format(order['origQty']))
-                        print(' - Price to {}: {}'.format(base, order['price']))
-                        print(' - Price to USDT: {}'.format(float(order['price']) * float(base_to_usdt)))
+                        usdt_price = float(order['price']) * float(base_to_usdt)
+                        print(' - Price to {}: {} (= ${:.2f})'.format(base, order['price'], usdt_price))
             except:
                 continue
 
