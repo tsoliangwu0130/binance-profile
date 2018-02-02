@@ -5,14 +5,18 @@
         <title></title>
     </head>
     <body>
+        <h1>Portfolio</h1>
         {% for balance in account.balances %}
         <ul>
-            <li>{{ balance }}</li>
+            <li>Asset: {{ balance.asset }}</li>
+            <li>Free: {{ balance.free }}</li>
+            <li>Locked: {{ balance.locked }}</li>
         </ul>
         {% endfor %}
 
         <hr>
 
+        <h1>Orders</h1>
         {% for order in account.orders %}
         <ul>
             <li>
