@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title></title>
+    </head>
+    <body>
+        {% for balance in account.balances %}
+        <ul>
+            <li>{{ balance }}</li>
+        </ul>
+        {% endfor %}
+
+        <hr>
+
+        {% for order in account.orders %}
+        <ul>
+            <li>
+                {% for o in order %}
+                <ul>
+                    <li>{{ o }}</li>
+                </ul>
+                {% endfor %}
+            </li>
+        </ul>
+        {% endfor %}
+    </body>
+</html>

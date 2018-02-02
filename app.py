@@ -2,7 +2,7 @@ import datetime
 import json
 from binance.client import Client, BinanceAPIException
 from config import Config
-from flask import Flask
+from flask import render_template, Flask
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -23,23 +23,16 @@ def get_account():
                 orders.append(order) if order else None
             except BinanceAPIException:
                 continue
-
-    for order in orders:
-        for o in order:
-            date = datetime.datetime.fromtimestamp(int(o['time']) / 1000).strftime('%Y-%m-%d %H:%M:%S')
-            o['date'] = date
-
     account['orders'] = orders
-    print(json.dumps(orders, indent=4, sort_keys=''))
+
     return account
 
 
 @app.route('/')
 def index():
     account = get_account()
-    # print(json.dumps(account, indent=4))
 
-    return ''
+    return render_template('index.html', account=account)
 
 
 if __name__ == '__main__':
