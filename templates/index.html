@@ -16,10 +16,19 @@
         {% for order in account.orders %}
         <ul>
             <li>
-                {% for o in order %}
+                {{ order[0].symbol }}
+                {% for trade in order %}
+                {% if trade.status != 'CANCELED' %}
                 <ul>
-                    <li>{{ o }}</li>
+                    <li>OrderID: {{ trade.orderId }}</li>
+                    <li>Price: {{ trade.price }}</li>
+                    <li>Quantity: {{ trade.origQty }}</li>
+                    <li>Status: {{ trade.status }}</li>
+                    <li>Side: {{ trade.side }}</li>
+                    <li>Time: {{ trade.time }}</li>
+                    ----
                 </ul>
+                {% endif %}
                 {% endfor %}
             </li>
         </ul>
